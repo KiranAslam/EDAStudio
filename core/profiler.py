@@ -101,10 +101,24 @@ class DataProfiler:
 
         return "UNUSABLE"
 
-    def _profile_column(self, series: pd.Series, name: str) -> ColumnProfile:
-        import streamlit as st
+    def _get_overrides(self) -> dict:
+        try:
+            import streamlit as st
 
-        override = st.session_state.get("column_overrides", {}).get(name)
+            return st.session_state.get("column_overrides", {})
+        except Exception:
+            return {}
+
+    def _get_ordered_columns(self) -> set:
+        try:
+            import streamlit as st
+
+            return st.session_state.get("ordered_columns", set())
+        except Exception:
+            return set()
+
+    def _profile_column(self, series: pd.Series, name: str) -> ColumnProfile:
+        override = self._get_overrides().get(name)
         n_total = len(series)
         n_null = int(series.isna().sum())
         n_non_null = n_total - n_null
@@ -132,7 +146,7 @@ class DataProfiler:
         unique_ratio = n_unique / n_non_null if n_non_null > 0 else 0.0
         analytical_type = self._classify_type(series, n_unique, override)
 
-        if name in st.session_state.get("ordered_columns", set()):
+        if name in self._get_ordered_columns():
             if analytical_type == "CONTINUOUS":
                 analytical_type = "CONTINUOUS_ORDERED"
 
