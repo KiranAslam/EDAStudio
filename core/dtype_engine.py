@@ -13,7 +13,6 @@ class CoercionReport:
     converted: bool = False
     warnings: list[str] = field(default_factory=list)
 
-
 def build_column_metadata(
     df: pd.DataFrame, profiles: dict
 ) -> dict[str, dict]:
@@ -28,8 +27,6 @@ def build_column_metadata(
             "null_pct": profile.null_pct,
         }
     return metadata
-
-
 def prepare_column(
     df: pd.DataFrame,
     col: str,
@@ -44,7 +41,6 @@ def prepare_column(
         st.session_state.get("column_overrides", {}).get(col)
         or (profile.analytical_type if profile else "CATEGORICAL")
     )
-
     report = CoercionReport(
         column=col,
         original_dtype=str(series.dtype),
