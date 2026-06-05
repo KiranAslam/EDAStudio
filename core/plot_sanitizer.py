@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
-
 @dataclass
 class SanitizationReport:
     original_rows: int
@@ -12,8 +11,6 @@ class SanitizationReport:
     inf_values_replaced: int
     nan_values_in_key_cols: int
     warnings: list[str] = field(default_factory=list)
-
-
 MIN_ROWS = {
     "scatter": 2,
     "line": 2,
@@ -24,7 +21,6 @@ MIN_ROWS = {
     "pie": 1,
     "timeseries": 2,
 }
-
 
 def sanitize_for_plot(
     df: pd.DataFrame,
@@ -45,7 +41,6 @@ def sanitize_for_plot(
     key_cols = [c for c in [x_col, y_col, color_col, size_col] if c and c in df.columns]
     if not key_cols:
         return df.copy(), report
-
     working = df[key_cols].copy()
     report.nan_values_in_key_cols = int(working.isna().sum().sum())
     if report.nan_values_in_key_cols > 0:
