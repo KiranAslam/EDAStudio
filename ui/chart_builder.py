@@ -6,9 +6,12 @@ import streamlit as st
 from config.chart_eligibility import AGGREGATE_FUNCTIONS, CHART_ELIGIBILITY
 from core.cardinality_guard import enforce_cardinality_limit
 from core.charts import build_plotly_figure
-from core.dtype_engine import apply_coercions_to_dataframe, detect_ohlc_columns, get_eligible_columns
+from core.dtype_engine import (
+    apply_coercions_to_dataframe,
+    detect_ohlc_columns,
+    get_eligible_columns,
+)
 from core.plot_sanitizer import sanitize_for_plot
-from core.profiler import DataProfiler
 from utils.error_handling import safe_component
 
 
@@ -119,7 +122,12 @@ def render_chart_builder():
                 y_col = st.selectbox("Y-axis", y_eligible)
                 if chart_type == "bar":
                     agg_func = st.selectbox("Aggregate", AGGREGATE_FUNCTIONS)
-            elif chart_type not in ("histogram", "heatmap_correlation", "scatter_matrix", "parcoords"):
+            elif chart_type not in (
+                "histogram",
+                "heatmap_correlation",
+                "scatter_matrix",
+                "parcoords",
+            ):
                 st.error("No eligible Y-axis columns.")
 
     with col_right:

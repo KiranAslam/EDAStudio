@@ -18,7 +18,10 @@ def render_column_dictionary():
 
     st.subheader("Rename columns")
     rename_col = st.selectbox("Select column to rename", df.columns.tolist())
-    new_name = st.text_input("Display name", st.session_state.get("column_renames", {}).get(rename_col, rename_col))
+    new_name = st.text_input(
+        "Display name",
+        st.session_state.get("column_renames", {}).get(rename_col, rename_col),
+    )
     if st.button("Apply rename"):
         renames = st.session_state.setdefault("column_renames", {})
         renames[rename_col] = new_name

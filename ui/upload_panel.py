@@ -73,6 +73,11 @@ def render_upload_sidebar() -> bool:
                 pd.Timestamp.now() - t0
             ).total_seconds() * 1000
 
+        # If loading failed above, exception_boundary will have displayed an error
+        # and the working set won't be in session state — bail early.
+        if st.session_state.get("working_df") is None:
+            return False
+
         with exception_boundary("Column profiling"):
             t0 = pd.Timestamp.now()
             profiler = DataProfiler()

@@ -4,8 +4,8 @@ import pandas as pd
 
 from core.cardinality_guard import enforce_cardinality_limit
 from core.dtype_engine import detect_ohlc_columns
-from core.profiler import DataProfiler
 from core.plot_sanitizer import sanitize_for_plot
+from core.profiler import DataProfiler
 from utils.validators import validate_uploaded_file
 
 

@@ -1,11 +1,11 @@
+import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
-import numpy as np
 from scipy import stats
 
-from core.cardinality_guard import enforce_cardinality_limit, enforce_scatter_density_limit
 from config.limits import LIMITS
+from core.cardinality_guard import enforce_cardinality_limit, enforce_scatter_density_limit
 
 
 def build_plotly_figure(df: pd.DataFrame, config: dict) -> go.Figure:
@@ -19,8 +19,8 @@ def build_plotly_figure(df: pd.DataFrame, config: dict) -> go.Figure:
     log_y = config.get("log_y", False)
     hierarchy_cols = config.get("hierarchy_cols", [])
     dimensions = config.get("dimensions", [])
-    corr_method = config.get("corr_method", "pearson")
     corr_threshold = config.get("corr_threshold", 0.0)
+    corr_method = config.get("corr_method", "pearson")
     ohlc = config.get("ohlc")
     location_mode = config.get("location_mode", "ISO-3")
 
@@ -120,7 +120,7 @@ def build_plotly_figure(df: pd.DataFrame, config: dict) -> go.Figure:
 
     if chart_type == "heatmap_correlation":
         cols = dimensions or df.select_dtypes(include="number").columns.tolist()
-        corr = df[cols].replace([np.inf, -np.inf], np.nan).corr()
+        corr = df[cols].replace([np.inf, -np.inf], np.nan).corr(method=corr_method)
         mask = np.abs(corr) < corr_threshold
         corr_masked = corr.mask(mask)
         fig = px.imshow(

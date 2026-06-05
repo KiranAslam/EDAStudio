@@ -90,7 +90,11 @@ def prepare_column(
         analytical = "CONTINUOUS_ORDERED"
         report.analytical_type = analytical
 
-    if analytical == "TEMPORAL" or (profile and profile.analytical_type == "TEMPORAL") or _looks_like_dates(series):
+    if (
+        analytical == "TEMPORAL"
+        or (profile and profile.analytical_type == "TEMPORAL")
+        or _looks_like_dates(series)
+    ):
         coerced, rate, warn = _coerce_datetime(series)
         report.coerced_dtype = str(coerced.dtype)
         report.parse_rate = rate

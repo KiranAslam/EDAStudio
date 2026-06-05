@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from pandas.api import types as pdt
 
 from config.limits import LIMITS
 
@@ -16,19 +17,26 @@ def _build_optimized_dtype_map(sample_df: pd.DataFrame) -> dict:
         if col_sample.dtype == object:
             if unique_ratio < LIMITS["CATEGORY_CONVERSION_THRESHOLD"]:
                 dtype_map[col] = "category"
-        elif col_sample.dtype == np.int64:
+        elif pdt.is_integer_dtype(col_sample.dtype):
             col_min, col_max = col_sample.min(), col_sample.max()
+            # Use pandas nullable integer dtypes so NA values are allowed
             if col_min >= 0 and col_max <= 255:
-                dtype_map[col] = np.uint8
+                dtype_map[col] = "UInt8"
+            elif col_min >= 0 and col_max <= 65535:
+                dtype_map[col] = "UInt16"
+            elif col_min >= 0 and col_max <= 4_294_967_295:
+                dtype_map[col] = "UInt32"
             elif col_min >= -128 and col_max <= 127:
-                dtype_map[col] = np.int8
+                dtype_map[col] = "Int8"
             elif col_min >= -32768 and col_max <= 32767:
-                dtype_map[col] = np.int16
+                dtype_map[col] = "Int16"
             elif col_min >= -2_147_483_648 and col_max <= 2_147_483_647:
-                dtype_map[col] = np.int32
-        elif col_sample.dtype == np.float64:
+                dtype_map[col] = "Int32"
+            else:
+                dtype_map[col] = "Int64"
+        elif pdt.is_float_dtype(col_sample.dtype):
             if col_sample.abs().max() < 3.4e38:
-                dtype_map[col] = np.float32
+                dtype_map[col] = "float32"
     return dtype_map
 
 
@@ -54,7 +62,6 @@ def _optimize_dataframe_memory(df: pd.DataFrame) -> pd.DataFrame:
 
 def load_with_memory_optimization(uploaded_file, file_type: str) -> pd.DataFrame:
     read_kwargs = {"low_memory": False, "on_bad_lines": "warn"}
-    encoding = getattr(uploaded_file, "_encoding", None)
 
     if file_type == "parquet":
         df = pd.read_parquet(uploaded_file)
