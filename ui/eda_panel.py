@@ -30,12 +30,16 @@ def render_eda():
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
+        min_sample = 1 if len(df) < 1000 else 1000
+        max_sample = max(min_sample, min(500_000, len(df)))
+        default_sample = min(LIMITS["SAMPLE_TARGET_ROWS"], len(df), max_sample)
+        sample_step = 1 if (max_sample - min_sample) < 1000 else 1000
         sample_size = st.slider(
             "EDA sample size",
-            1000,
-            min(500_000, len(df)),
-            min(LIMITS["SAMPLE_TARGET_ROWS"], len(df)),
-            step=1000,
+            min_sample,
+            max_sample,
+            default_sample,
+            step=sample_step,
         )
     with c2:
         corr_threshold = st.slider(

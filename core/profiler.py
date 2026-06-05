@@ -82,21 +82,27 @@ class DataProfiler:
             except Exception:
                 pass
 
-        if pd.api.types.is_bool_dtype(series) or pd.api.types.is_categorical_dtype(
-            series
+        if pd.api.types.is_bool_dtype(series) or isinstance(
+            series.dtype, pd.CategoricalDtype
         ):
             return "CATEGORICAL"
 
         if pd.api.types.is_object_dtype(series):
             return "CATEGORICAL"
 
-        if pd.api.types.is_numeric_dtype(series):
+        if pd.api.types.is_float_dtype(series):
+            return "CONTINUOUS"
+
+        if pd.api.types.is_integer_dtype(series):
             if n_unique <= 0:
                 return "UNUSABLE"
             if n_unique <= 20:
                 return "CATEGORICAL"
             if n_unique <= 50:
                 return "AMBIGUOUS"
+            return "CONTINUOUS"
+
+        if pd.api.types.is_numeric_dtype(series):
             return "CONTINUOUS"
 
         return "UNUSABLE"

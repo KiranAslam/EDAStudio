@@ -51,19 +51,20 @@ def sanitize_for_plot(
 
     for col in key_cols:
         if pd.api.types.is_numeric_dtype(df[col]):
-            n_inf = int(np.isinf(pd.to_numeric(df[col], errors="coerce")).sum())
+            numeric = pd.to_numeric(df[col], errors="coerce")
+            n_inf = int(np.isinf(numeric).sum())
             if n_inf > 0:
                 report.inf_values_replaced += n_inf
-                working[col] = working[col].replace([np.inf, -np.inf], np.nan)
                 report.warnings.append(
                     f"Column '{col}': {n_inf} infinite values replaced with NaN."
                 )
+            working[col] = numeric.replace([np.inf, -np.inf], np.nan)
 
     mask = pd.Series(True, index=working.index)
     if chart_type in ("scatter",) and trendline and x_col and y_col:
         mask = mask & working[x_col].notna() & working[y_col].notna()
     elif chart_type in ("scatter",) and x_col and y_col:
-        mask = mask & ~(working[x_col].isna() & working[y_col].isna())
+        mask = mask & working[x_col].notna() & working[y_col].notna()
     elif chart_type in ("line", "timeseries"):
         if x_col:
             mask = mask & working[x_col].notna()

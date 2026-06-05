@@ -49,7 +49,7 @@ def build_plotly_figure(df: pd.DataFrame, config: dict) -> go.Figure:
                 .agg(agg_func)
                 .reset_index()
             )
-            fig = px.bar(agg_df, x="x", y="y", color=color_col if color_col else None)
+            fig = px.bar(agg_df, x="x", y="y")
         else:
             counts = x_series.value_counts().reset_index()
             counts.columns = ["x", "y"]
