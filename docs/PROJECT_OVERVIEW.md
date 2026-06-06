@@ -72,8 +72,7 @@ Reads files with memory optimization and category conversion safeguards.
 - Scatter matrix
 - Treemap
 - Parallel coordinates
-- Candlestick
-- Choropleth
+
 
 ## Data flow
 1. User uploads a dataset.
