@@ -1,6 +1,8 @@
+import io
 import numpy as np
 import pandas as pd
 from pandas.api import types as pdt
+import chardet
 
 from config.limits import LIMITS
 
@@ -67,12 +69,61 @@ def load_with_memory_optimization(uploaded_file, file_type: str) -> pd.DataFrame
         df = pd.read_parquet(uploaded_file)
     elif file_type in ("csv", "tsv"):
         sep = "\t" if file_type == "tsv" else ","
-        sample = pd.read_csv(uploaded_file, nrows=10_000, sep=sep, **read_kwargs)
+        # Attempt to detect file encoding to avoid UnicodeDecodeError on upload
+        def _detect_encoding(f) -> str | None:
+            try:
+                head = f.read(32_768)
+                if isinstance(head, str):
+                    # io.TextIOBase may return str; encode for detector
+                    head = head.encode("utf-8", errors="ignore")
+                result = chardet.detect(head)
+                return result.get("encoding")
+            except Exception:
+                return None
+
+        # sniff encoding
+        uploaded_file.seek(0)
+        detected_enc = _detect_encoding(uploaded_file)
+        encodings_to_try = [e for e in (detected_enc, "utf-8", "latin-1", "cp1252") if e]
+        sample = None
+        for enc in encodings_to_try:
+            try:
+                uploaded_file.seek(0)
+                sample = pd.read_csv(uploaded_file, nrows=10_000, sep=sep, encoding=enc, **read_kwargs)
+                used_encoding = enc
+                break
+            except UnicodeDecodeError:
+                continue
+        if sample is None:
+            # Last-ditch: try reading with binary encoding fallback
+            uploaded_file.seek(0)
+            sample = pd.read_csv(uploaded_file, nrows=10_000, sep=sep, encoding="latin-1", **read_kwargs)
+            used_encoding = "latin-1"
         dtype_map = _build_optimized_dtype_map(sample)
         uploaded_file.seek(0)
-        df = pd.read_csv(
-            uploaded_file, sep=sep, dtype=dtype_map, **read_kwargs
-        )
+        # Read full file, but be resilient to dtype coercion failures.
+        read_success = False
+        for enc in (used_encoding, "utf-8", "latin-1"):
+            try:
+                uploaded_file.seek(0)
+                df = pd.read_csv(uploaded_file, sep=sep, dtype=dtype_map, encoding=enc, **read_kwargs)
+                read_success = True
+                break
+            except (ValueError, TypeError):
+                # dtype map may be incompatible with actual data (NA in ints, mixed types)
+                try:
+                    uploaded_file.seek(0)
+                    df = pd.read_csv(uploaded_file, nrows=None, sep=sep, encoding=enc, **read_kwargs)
+                    read_success = True
+                    break
+                except UnicodeDecodeError:
+                    continue
+            except UnicodeDecodeError:
+                continue
+        if not read_success:
+            # Final attempt: read with latin-1 and no dtype coercion
+            uploaded_file.seek(0)
+            df = pd.read_csv(uploaded_file, sep=sep, encoding="latin-1", **read_kwargs)
     elif file_type in ("xlsx", "xls"):
         df = pd.read_excel(uploaded_file)
     else:
