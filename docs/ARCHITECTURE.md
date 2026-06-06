@@ -2,7 +2,7 @@
 
 ## Layers
 
-1. **UI** (`ui/`) — Streamlit tabs: Dashboard, Automated EDA, Chart Builder, Column Dictionary
+1. **UI** (`ui/`) — Streamlit tabs: Dashboard, Automated EDA, Chart Builder
 2. **Core** (`core/`) — Profiling, dtype coercion, sanitization, Plotly figure builders
 3. **Utils** (`utils/`) — Upload validation, memory checks, error boundaries
 4. **Config** (`config/`) — Limits and chart eligibility matrix

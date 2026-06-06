@@ -3,7 +3,6 @@ import json
 import numpy as np
 import plotly.express as px
 import streamlit as st
-
 from config.limits import LIMITS
 from core.cached_operations import compute_correlation_matrix, compute_distribution
 from core.session_state import get_df_hash

@@ -94,3 +94,11 @@ def sanitize_for_plot(
             f"{chart_type} requires at least {min_required}."
         )
     return result_df, report
+
+
+def sanitize_for_chart(*args, **kwargs):
+    return sanitize_for_plot(*args, **kwargs)
+
+
+def sanitize(*args, **kwargs):
+    return sanitize_for_plot(*args, **kwargs)

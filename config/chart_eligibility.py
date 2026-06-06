@@ -1,5 +1,3 @@
-"""Source of truth: which analytical types each chart requires."""
-
 from typing import TypedDict
 
 
@@ -42,6 +40,16 @@ CHART_ELIGIBILITY: dict[str, ChartSpec] = {
         "y": ["CONTINUOUS"],
         "color": ["CATEGORICAL", "CONTINUOUS", "NONE"],
         "size": ["CONTINUOUS", "NONE"],
+        "requires_multiple_y": False,
+        "min_numeric_for_corr": 0,
+    },
+    "bubble": {
+        "label": "Bubble Plot",
+        "description": "Scatter plot with bubble size encoding",
+        "x": ["CONTINUOUS"],
+        "y": ["CONTINUOUS"],
+        "color": ["CATEGORICAL", "CONTINUOUS", "NONE"],
+        "size": ["CONTINUOUS"],
         "requires_multiple_y": False,
         "min_numeric_for_corr": 0,
     },

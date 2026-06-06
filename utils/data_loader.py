@@ -1,10 +1,17 @@
-import io
-import numpy as np
+import chardet
 import pandas as pd
 from pandas.api import types as pdt
-import chardet
-
 from config.limits import LIMITS
+
+
+def _looks_like_date_values(series: pd.Series) -> bool:
+    if series.dtype != object:
+        return False
+    sample = series.dropna().head(100)
+    if len(sample) == 0:
+        return False
+    parsed = pd.to_datetime(sample, errors="coerce")
+    return parsed.notna().sum() / len(sample) > 0.8
 
 
 def _build_optimized_dtype_map(sample_df: pd.DataFrame) -> dict:
@@ -17,6 +24,8 @@ def _build_optimized_dtype_map(sample_df: pd.DataFrame) -> dict:
             continue
         unique_ratio = n_unique / n_total
         if col_sample.dtype == object:
+            if _looks_like_date_values(col_sample):
+                continue
             if unique_ratio < LIMITS["CATEGORY_CONVERSION_THRESHOLD"]:
                 dtype_map[col] = "category"
         elif pdt.is_integer_dtype(col_sample.dtype):
@@ -44,6 +53,8 @@ def _build_optimized_dtype_map(sample_df: pd.DataFrame) -> dict:
 
 def _optimize_dataframe_memory(df: pd.DataFrame) -> pd.DataFrame:
     for col in df.select_dtypes(include="object").columns:
+        if _looks_like_date_values(df[col]):
+            continue
         n_unique_ratio = df[col].nunique() / max(len(df[col].dropna()), 1)
         if n_unique_ratio < LIMITS["CATEGORY_CONVERSION_THRESHOLD"]:
             df[col] = df[col].astype("category")
@@ -89,31 +100,52 @@ def load_with_memory_optimization(uploaded_file, file_type: str) -> pd.DataFrame
         for enc in encodings_to_try:
             try:
                 uploaded_file.seek(0)
-                sample = pd.read_csv(uploaded_file, nrows=10_000, sep=sep, encoding=enc, **read_kwargs)
+                sample = pd.read_csv(
+                    uploaded_file,
+                    nrows=10_000,
+                    sep=sep,
+                    encoding=enc,
+                    **read_kwargs,
+                )
                 used_encoding = enc
                 break
             except UnicodeDecodeError:
                 continue
         if sample is None:
-            # Last-ditch: try reading with binary encoding fallback
             uploaded_file.seek(0)
-            sample = pd.read_csv(uploaded_file, nrows=10_000, sep=sep, encoding="latin-1", **read_kwargs)
+            sample = pd.read_csv(
+                uploaded_file,
+                nrows=10_000,
+                sep=sep,
+                encoding="latin-1",
+                **read_kwargs,
+            )
             used_encoding = "latin-1"
         dtype_map = _build_optimized_dtype_map(sample)
         uploaded_file.seek(0)
-        # Read full file, but be resilient to dtype coercion failures.
         read_success = False
         for enc in (used_encoding, "utf-8", "latin-1"):
             try:
                 uploaded_file.seek(0)
-                df = pd.read_csv(uploaded_file, sep=sep, dtype=dtype_map, encoding=enc, **read_kwargs)
+                df = pd.read_csv(
+                    uploaded_file,
+                    sep=sep,
+                    dtype=dtype_map,
+                    encoding=enc,
+                    **read_kwargs,
+                )
                 read_success = True
                 break
             except (ValueError, TypeError):
-                # dtype map may be incompatible with actual data (NA in ints, mixed types)
                 try:
                     uploaded_file.seek(0)
-                    df = pd.read_csv(uploaded_file, nrows=None, sep=sep, encoding=enc, **read_kwargs)
+                    df = pd.read_csv(
+                        uploaded_file,
+                        nrows=None,
+                        sep=sep,
+                        encoding=enc,
+                        **read_kwargs,
+                    )
                     read_success = True
                     break
                 except UnicodeDecodeError:
@@ -121,7 +153,6 @@ def load_with_memory_optimization(uploaded_file, file_type: str) -> pd.DataFrame
             except UnicodeDecodeError:
                 continue
         if not read_success:
-            # Final attempt: read with latin-1 and no dtype coercion
             uploaded_file.seek(0)
             df = pd.read_csv(uploaded_file, sep=sep, encoding="latin-1", **read_kwargs)
     elif file_type in ("xlsx", "xls"):

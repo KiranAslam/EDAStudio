@@ -1,5 +1,5 @@
 import json
-
+import importlib.util
 import pandas as pd
 import streamlit as st
 
@@ -141,15 +141,20 @@ def render_chart_builder():
                 color_col = None
 
         if spec.get("size"):
-            size_eligible = ["None"] + get_eligible_columns(
-                profiles, [t for t in spec["size"] if t != "NONE"]
-            )
+            size_choices = get_eligible_columns(profiles, [t for t in spec["size"] if t != "NONE"])
+            if chart_type == "bubble":
+                size_eligible = size_choices
+            else:
+                size_eligible = ["None"] + size_choices
             size_col = st.selectbox("Size", size_eligible)
             if size_col == "None":
                 size_col = None
 
     if chart_type == "scatter":
         trendline = st.checkbox("Show OLS trendline", value=False)
+        if trendline and importlib.util.find_spec("statsmodels") is None:
+            st.warning("OLS trendline needs `statsmodels`; rendering the scatter without trendline.")
+            trendline = False
     if chart_type == "histogram":
         log_y = st.checkbox("Log Y-axis", value=False)
 

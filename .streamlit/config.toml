@@ -1,3 +1,11 @@
+[theme]
+base = "light"
+
+[server]
+headless = true
+
+[runner]
+maxUploadSize = 50
 [server]
 headless = true
 maxUploadSize = 200

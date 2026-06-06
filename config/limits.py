@@ -1,5 +1,3 @@
-"""Single tuning surface for all caps and thresholds."""
-
 LIMITS = {
     "MAX_FILE_SIZE_MB": 200,
     "SAMPLE_THRESHOLD_ROWS": 500_000,

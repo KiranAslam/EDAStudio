@@ -1,16 +1,10 @@
-"""
-EDA Studio — Production data visualization and automated EDA.
-Run: streamlit run app.py
-"""
-
 import streamlit as st
 
 from core.session_state import initialize_session_state
 from ui.chart_builder import render_chart_builder
-from ui.column_dictionary import render_column_dictionary
 from ui.eda_panel import render_eda
 from ui.overview_panel import render_overview
-from ui.styles import render_header
+from ui.styles import render_header, render_workflow_hint
 from ui.upload_panel import render_upload_sidebar
 from utils.error_handling import exception_boundary
 
@@ -25,14 +19,14 @@ st.set_page_config(
 def main():
     initialize_session_state()
     render_header()
-    render_upload_sidebar()
+    has_data = render_upload_sidebar()
+    render_workflow_hint(has_data)
 
-    tab_overview, tab_eda, tab_charts, tab_columns = st.tabs(
+    tab_overview, tab_eda, tab_charts = st.tabs(
         [
             "Dashboard",
             "Automated EDA",
             "Chart Builder",
-            "Column Dictionary",
         ]
     )
 
@@ -44,9 +38,6 @@ def main():
 
     with tab_charts:
         render_chart_builder()
-
-    with tab_columns:
-        render_column_dictionary()
 
     st.sidebar.divider()
     st.sidebar.markdown("### Export working data")
@@ -61,7 +52,7 @@ def main():
 
     st.sidebar.markdown("---")
     st.sidebar.caption(
-        "EDA Studio v1.0 · Dtype-aware charts · No tracebacks in production UI"
+        "EDA Studio v1.1 · Dtype-aware charts · No tracebacks in production UI"
     )
 
 

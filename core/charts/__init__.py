@@ -60,19 +60,36 @@ def build_plotly_figure(df: pd.DataFrame, config: dict) -> go.Figure:
     if chart_type == "scatter":
         df, density = enforce_scatter_density_limit(df, x_col, y_col)
         render_mode = density.get("render_mode", "svg")
+        trendline_mode = "ols" if trendline and _has_statsmodels() else None
         fig = px.scatter(
             df,
             x=x_col,
             y=y_col,
             color=color_col,
             size=size_col,
-            trendline="ols" if trendline else None,
+            trendline=trendline_mode,
             render_mode=render_mode,
             opacity=0.4 if len(df) > 1000 else 0.8,
         )
         return fig
 
+    if chart_type == "bubble":
+        df, density = enforce_scatter_density_limit(df, x_col, y_col)
+        render_mode = density.get("render_mode", "svg")
+        fig = px.scatter(
+            df,
+            x=x_col,
+            y=y_col,
+            color=color_col,
+            size=size_col,
+            render_mode=render_mode,
+            opacity=0.5 if len(df) > 1000 else 0.85,
+        )
+        return fig
+
     if chart_type in ("line", "timeseries"):
+        if x_col and x_col in df.columns:
+            df = df.sort_values(x_col)
         fig = px.line(df, x=x_col, y=y_col, color=color_col)
         fig.update_traces(connectgaps=False)
         if chart_type == "timeseries":
@@ -201,3 +218,12 @@ def build_plotly_figure(df: pd.DataFrame, config: dict) -> go.Figure:
         return fig
 
     raise ValueError(f"Unsupported chart type: {chart_type}")
+
+
+def _has_statsmodels() -> bool:
+    try:
+        import importlib.util
+
+        return importlib.util.find_spec("statsmodels") is not None
+    except Exception:
+        return False

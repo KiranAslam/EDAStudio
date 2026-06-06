@@ -26,8 +26,6 @@ This guide summarizes the chart types currently implemented in EDA Studio and th
 - Time series: line chart with a range slider.
 - Heatmap (cross-tab): two categorical columns.
 - Treemap: hierarchical categorical path plus value column.
-- Candlestick: OHLC columns plus date column.
-- Choropleth: geographic identifier plus numeric value.
 
 ### Multivariate
 

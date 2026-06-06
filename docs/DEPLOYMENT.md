@@ -27,7 +27,3 @@ In `config/limits.py`:
 
 - `SAMPLE_TARGET_ROWS = 100_000` (or lower)
 - `MAX_FILE_SIZE_MB = 100` if users hit OOM
-
-## Secrets (optional)
-
-For Mapbox or API keys later, add `.streamlit/secrets.toml` locally (gitignored) and configure in Cloud **Settings → Secrets**.

@@ -54,7 +54,10 @@ def enforce_cardinality_limit(
     else:
         top_cats = series.value_counts().nlargest(top_n).index
 
-    filtered = series.where(series.isin(top_cats), other="Other")
+    filtered = series.copy()
+    if isinstance(filtered.dtype, pd.CategoricalDtype) and "Other" not in filtered.cat.categories:
+        filtered = filtered.cat.add_categories(["Other"])
+    filtered = filtered.where(filtered.isin(top_cats), other="Other")
     action_report.update(
         {
             "action_taken": f"Truncated to top {top_n} by {agg_func}",

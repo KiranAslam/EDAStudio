@@ -1,9 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
-
 import numpy as np
 import pandas as pd
-
 from utils.logging_config import logger
 
 GEO_NAME_PATTERNS = ("country", "iso", "state", "fips", "region_code", "geo", "nation")
